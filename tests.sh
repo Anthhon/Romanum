@@ -43,33 +43,33 @@ run_test() {
         if [ $exit_code -ne 0 ]; then
             passed=true
             PASSED_TESTS=$((PASSED_TESTS + 1))
-            echo -e "${GREEN}✓ PASS${NC}: $test_name (Correctly failed on: $input)"
+            echo -e "${GREEN}PASS:${NC} $test_name (Correctly failed on: $input)"
         else
             FAILED_TESTS=$((FAILED_TESTS + 1))
-            echo -e "${RED}✗ FAIL${NC}: $test_name (Should have failed but didn't: $input)"
-            echo -e "  Output: $output"
+            echo -e "${RED}FAIL:${NC} $test_name (Should have failed but didn't: $input)"
+            echo -e "- Output: $output"
         fi
     else
         if [ "$output" = "$expected_output" ] && [ $exit_code -eq 0 ]; then
             passed=true
             PASSED_TESTS=$((PASSED_TESTS + 1))
-            echo -e "${GREEN}✓ PASS${NC}: $test_name ($input → $output)"
+            echo -e "${GREEN}PASS${NC}: $test_name → $output"
         else
             FAILED_TESTS=$((FAILED_TESTS + 1))
-            echo -e "${RED}✗ FAIL${NC}: $test_name ($input)"
-            echo -e "  Expected: $expected_output"
-            echo -e "  Got:      $output"
+            echo -e "${RED}FAIL${NC}: $test_name ($input)"
+            echo -e "- Expected: $expected_output"
+            echo -e "- Output:      $output"
         fi
     fi
 }
 
-echo -e "${BLUE}========================================${NC}"
-echo -e "${BLUE}Testing Roman Numeral Converter${NC}"
-echo -e "${BLUE}========================================${NC}\n"
+echo -e "${BLUE}=============${NC}"
+echo -e "${BLUE}RUNNING TESTS${NC}"
+echo -e "${BLUE}=============${NC}\n"
 
-# SECTION 1: Roman to Integer Tests (valid cases)
-echo -e "${YELLOW}Section 1: Roman → Integer (Valid cases)${NC}"
-echo -e "${YELLOW}----------------------------------------${NC}"
+# Roman to Integer Tests
+echo -e "${YELLOW}Group 1: Roman → Integer${NC}"
+echo -e "${YELLOW}------------------------${NC}"
 
 # Basic single symbols
 run_test "Basic: I" "-i" "I" "1"
@@ -137,10 +137,10 @@ run_test "Year: MMXXIII" "-i" "MMXXIII" "2023"
 run_test "Year: MMXXIV" "-i" "MMXXIV" "2024"
 run_test "Year: MMMCMXCIX" "-i" "MMMCMXCIX" "3999"
 
-# Edge cases (grammatically incorrect but your code accepts)
-echo -e "\n${YELLOW}Section 2: Roman → Integer (Edge/Grammatically incorrect cases)${NC}"
-echo -e "${YELLOW}--------------------------------------------------------${NC}"
-run_test "Edge: VX (your example)" "-i" "VX" "15"
+# Edge cases
+echo -e "\n${YELLOW}Group 2: Roman → Integer (Edge/Grammatically incorrect cases)${NC}"
+echo -e "${YELLOW}-------------------------------------------------------------${NC}"
+run_test "Edge: VX" "-i" "VX" "15"
 run_test "Edge: VL" "-i" "VL" "45"
 run_test "Edge: VC" "-i" "VC" "95"
 run_test "Edge: VD" "-i" "VD" "495"
@@ -156,9 +156,9 @@ run_test "Edge: repeated L" "-i" "LL" "100"
 run_test "Edge: repeated D" "-i" "DD" "1000"
 run_test "Edge: IIII" "-i" "IIII" "4"
 
-# SECTION 2: Integer to Roman Tests
-echo -e "\n${YELLOW}Section 3: Integer → Roman (Valid cases)${NC}"
-echo -e "${YELLOW}----------------------------------------${NC}"
+# Integer to Roman Tests
+echo -e "\n${YELLOW}Group 3: Integer → Roman (Valid cases)${NC}"
+echo -e "${YELLOW}--------------------------------------${NC}"
 
 run_test "To Roman: 1" "-r" "1" "I"
 run_test "To Roman: 4" "-r" "4" "IV"
@@ -188,9 +188,9 @@ run_test "To Roman: 2000" "-r" "2000" "MM"
 run_test "To Roman: 2024" "-r" "2024" "MMXXIV"
 run_test "To Roman: 3999" "-r" "3999" "MMMCMXCIX"
 
-# SECTION 3: Error Cases (should fail)
-echo -e "\n${YELLOW}Section 4: Error Cases (Should fail)${NC}"
-echo -e "${YELLOW}------------------------------------${NC}"
+# Error Cases (should fail)
+echo -e "\n${YELLOW}Group 4: Error Cases (Should fail)${NC}"
+echo -e "${YELLOW}----------------------------------${NC}"
 
 run_test "Error: Empty string" "-i" "" "" true
 run_test "Error: Invalid char A" "-i" "A" "" true
@@ -203,9 +203,9 @@ run_test "Error: To Roman too large" "-r" "5000" "" true
 run_test "Error: To Roman not number" "-r" "abc" "" true
 run_test "Error: No flag" "" "MCMXLVIII" "" true
 
-# SECTION 4: Mixed Case Tests
-echo -e "\n${YELLOW}Section 5: Mixed/Lowercase Tests${NC}"
-echo -e "${YELLOW}--------------------------------${NC}"
+# Mixed Case Tests
+echo -e "\n${YELLOW}Group 5: Mixed/Lowercase Tests${NC}"
+echo -e "${YELLOW}------------------------------${NC}"
 
 run_test "Mixed: mMxViii" "-i" "mMxViii" "1014"
 run_test "Mixed: mCmXcIX" "-i" "mCmXcIX" "1999"

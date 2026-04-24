@@ -1,10 +1,11 @@
 #include <stddef.h>
 #include <stdio.h>
-#include <errno.h>
-#include <inttypes.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <ctype.h>
+#include <inttypes.h>
 
 //#define TOGGLE_DEBUG
 #ifdef TOGGLE_DEBUG
@@ -33,87 +34,72 @@ typedef enum {
     RN_M = 1000,
 } roman_numerals_t;
 
+// Helper function to get numeric value of a Roman numeral character
+static int roman_char_value(char c)
+{
+    switch (c) {
+        case 'i': case 'I': return RN_I;
+        case 'v': case 'V': return RN_V;
+        case 'x': case 'X': return RN_X;
+        case 'l': case 'L': return RN_L;
+        case 'c': case 'C': return RN_C;
+        case 'd': case 'D': return RN_D;
+        case 'm': case 'M': return RN_M;
+        default: return 0;
+    }
+}
+
+// Check if a character is a valid subtractive pair
+static int is_subtractive_pair(char curr, char next)
+{
+    int curr_val = roman_char_value(curr);
+    int next_val = roman_char_value(next);
+    
+    // Valid subtractive pairs
+    // Ex.: 'I' before 'V' or 'X'
+    return (curr_val == RN_I && (next_val == RN_V || next_val == RN_X || next_val == RN_L || next_val == RN_C || next_val == RN_D || next_val == RN_M)) ||
+           (curr_val == RN_X && (next_val == RN_L || next_val == RN_C || next_val == RN_D || next_val == RN_M)) ||
+           (curr_val == RN_V && (next_val == RN_L || next_val == RN_C || next_val == RN_D || next_val == RN_M)) ||
+           (curr_val == RN_C && (next_val == RN_D || next_val == RN_M));
+}
+
+// Process a subtractive pair
+static int process_subtractive_pair(char curr, char next)
+{
+    int curr_val = roman_char_value(curr);
+    int next_val = roman_char_value(next);
+    return next_val - curr_val;
+}
+
 uintmax_t roman_transliterate(char* value)
 {
+    if (value == NULL) {
+        LOG_DBG("Empty string given from user\n");
+        return 0;
+    }
+    
     uintmax_t result = 0;
-    for (size_t i = 0; i < strlen(value); ++i) {
-        uint16_t curr = value[i];
-        uint16_t next = 0;
-        if (i + 1 <= strlen(value)-1) {
-            next = value[i + 1];
-            LOG_DBG("next: %c\n", (char)next);
-        }
+    size_t value_len = strlen(value);
 
-        LOG_DBG("result: %i\n", result);
-        switch (curr) {
-            // Casos de valores que subtraem outros
-            case 'I': case 'i':
-                if (next == 'V' || next == 'v') {
-                    result += RN_V - RN_I;
-                    LOG_DBG("subtracting: V - I\n");
-                    ++i;
-                } else if (next == 'X' || next == 'x') {
-                    result += RN_X - RN_I;
-                    LOG_DBG("subtracting: X - I\n");
-                    ++i;
-                } else {
-                    LOG_DBG("adding: 'I'\n");
-                    result += RN_I;
-                }
-                break;
-            case 'X': case 'x':
-                if (next == 'L' || next == 'l') {
-                    result += RN_L - RN_X;
-                    LOG_DBG("subtracting: L - X\n");
-                    ++i;
-                } else if (next == 'C' || next == 'c') {
-                    result += RN_C - RN_X;
-                    LOG_DBG("subtracting: C - X\n");
-                    ++i;
-                } else {
-                    LOG_DBG("adding: 'X'\n");
-                    result += RN_X;
-                }
-                break;
-            case 'C': case 'c':
-                if (next == 'D' || next == 'd') {
-                    result += RN_D - RN_C;
-                    LOG_DBG("subtracting: D - C\n");
-                    ++i;
-                } else if (next == 'M' || next == 'm') {
-                    result += RN_M - RN_C;
-                    LOG_DBG("subtracting: M - C\n");
-                    ++i;
-                } else {
-                    LOG_DBG("adding: 'C'\n");
-                    result += RN_C;
-                }
-                break;
-            // Casos de valores que não subtraem nenhum outro
-            case 'V': case 'v':
-                result += RN_V;
-                LOG_DBG("adding: 'V'\n");
-                break;
-            case 'L': case 'l':
-                result += RN_L;
-                LOG_DBG("adding: 'L'\n");
-                break;
-            case 'D': case 'd':
-                result += RN_D;
-                LOG_DBG("adding: 'D'\n");
-                break;
-            case 'M': case 'm':
-                result += RN_M;
-                LOG_DBG("adding: 'M'\n");
-                break;
-            default: // Avoid errors by ignoring any other char
-                break;
+    for (size_t i = 0; i < value_len; ++i) {
+        uint16_t curr = value[i];
+        if (curr == 0) continue; // Skip invalid characters
+
+        // Check for subtractive pair
+        if (i + 1 < value_len && is_subtractive_pair(value[i], value[i + 1])) {
+            result += process_subtractive_pair(value[i], value[i + 1]);
+            LOG_DBG("subtracting: %c - %c\n", value[i], value[i + 1]);
+            ++i;
+        } else {
+            result += roman_char_value(curr);
+            LOG_DBG("adding: %c\n", value[i]);
         }
+        LOG_DBG("result: %i\n", result);
     }
     return result;
 }
 
-void print_usage(char* program_name)
+static void print_usage(char* program_name)
 {
     fprintf(stderr, "Usage: ./%s [OPTION] [VALUE]\n", program_name);
     fprintf(stderr, "\t-i\t--to-int\tConvert roman to integer\n");
